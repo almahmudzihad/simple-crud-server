@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -22,6 +22,25 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    // Get the database and collection on which to run the operation
+    const database = client.db("simpleCrud");
+    const usersCollection = database.collection("user");
+
+    app.get("/users", async (req, res) => {
+        const cursor = usersCollection.find();
+        const users = await cursor.toArray();
+        res.send(users);
+    });
+    app.get("/users/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const user = await usersCollection.findOne(query);
+        res.send(user);
+    });
+
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
